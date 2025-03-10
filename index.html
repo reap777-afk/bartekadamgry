@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Gier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        /* Menu nawigacyjne */
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #444;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #444;
+            color: #fff;
+        }
+
+        /* Sekcje (domyślnie ukryte) */
+        section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        /* Widoczna sekcja */
+        section.active {
+            display: block;
+        }
+
+        /* Tabela gier */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center; /* Wyśrodkowanie tekstu w poziomie */
+            vertical-align: middle; /* Wyśrodkowanie tekstu w pionie */
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            color: #fff;
+            cursor: pointer;
+            position: relative;
+            font-weight: bold;
+        }
+
+        th:hover {
+            opacity: 0.9; /* Lekkie przyciemnienie po najechaniu */
+        }
+
+        th::after {
+            content: "▼";
+            position: absolute;
+            right: 10px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        th.sorted-asc::after {
+            content: "▲";
+        }
+
+        th.sorted-desc::after {
+            content: "▼";
+        }
+
+        /* Kolory dla nagłówków kolumn (bardziej stonowane) */
+        th:nth-child(1) { background-color: #5cb85c; } /* NR. - zielony */
+        th:nth-child(2) { background-color: #5bc0de; } /* NAZWA - niebieski */
+        th:nth-child(3) { background-color: #f0ad4e; } /* CENA - pomarańczowy */
+        th:nth-child(4) { background-color: #6f42c1; } /* ZWROTIK? - fioletowy */
+        th:nth-child(5) { background-color: #d9534f; } /* OCENA - czerwony */
+        th:nth-child(6) { background-color: #777; } /* KOMENTARZ - szary */
+        th:nth-child(7) { background-color: #333; } /* AKCJE - ciemny szary */
+
+        tr:hover {
+            background-color: #f9f9f9; /* Lekkie podświetlenie wiersza po najechaniu */
+        }
+
+        .add-game-form {
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .add-game-form input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 150px;
+        }
+
+        .add-game-form button {
+            padding: 8px 12px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-game-form button:hover {
+            background-color: #555;
+        }
+
+        .delete-btn {
+            background-color: #d9534f;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
+
+        .edit-btn {
+            background-color: #5cb85c;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .edit-btn:hover {
+            background-color: #4cae4c;
+        }
+
+        .save-btn {
+            background-color: #5bc0de;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .save-btn:hover {
+            background-color: #31b0d5;
+        }
+
+        .cancel-btn {
+            background-color: #f0ad4e;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background-color: #ec971f;
+        }
+
+        /* Styl dla zakładki Statystyka */
+        #statistics {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        #statistics h2 {
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        #statistics p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tabela Gier</h1>
+
+    <!-- Menu nawigacyjne -->
+    <nav>
+        <a href="#" onclick="showSection('games')">Tabela Gier</a>
+        <a href="#" onclick="showSection('statistics')">Statystyka</a>
+    </nav>
+
+    <!-- Sekcja Tabela Gier -->
+    <section id="games" class="active">
+        <!-- Formularz do dodawania nowej gry -->
+        <div class="add-game-form">
+            <input type="text" id="gameName" placeholder="Nazwa gry">
+            <input type="number" id="gamePrice" placeholder="Cena (PLN)">
+            <input type="text" id="gameReturn" placeholder="Zwrotik? (TAK/NIE)">
+            <input type="number" id="gameRating" placeholder="Ocena (1-10)">
+            <input type="text" id="gameComment" placeholder="Komentarz">
+            <button onclick="addGame()">Dodaj Grę</button>
+        </div>
+
+        <!-- Tabela z grami -->
+        <table id="gamesTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('id')">NR.</th>
+                    <th onclick="sortTable('name')">NAZWA</th>
+                    <th onclick="sortTable('price')">CENA</th>
+                    <th onclick="sortTable('return')">ZWROTIK?</th>
+                    <th onclick="sortTable('rating')">OCENA</th>
+                    <th onclick="sortTable('comment')">KOMENTARZ</th>
+                    <th>AKCJE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dane zostaną dodane dynamicznie za pomocą JavaScript -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Sekcja Statystyka -->
+    <section id="statistics">
+        <h2>Statystyka</h2>
+        <p id="averagePrice">Średnia cena gier: <span class="value">0 PLN</span></p>
+        <p id="returnPercentage">Procent gier z zwrotem "TAK": <span class="value">0%</span></p>
+        <p id="averageRating">Średnia ocena gier: <span class="value">0</span></p>
+    </section>
+
+    <script>
+        // Dane z pliku Excel
+        let games = [
+            { id: 1, name: "Satisfactory", price: 184, return: "TAK", rating: 3, comment: "Nuda" },
+            { id: 2, name: "Operation Tango", price: 72, return: "NIE", rating: 8, comment: "" },
+            { id: 3, name: "Police Simulator", price: 120, return: "TAK", rating: 6, comment: "Fajne ale za drogie" },
+            { id: 4, name: "Pro Soccer Online", price: 36, return: "TAK", rating: 4, comment: "We dwóch ci??ko" },
+            { id: 5, name: "Pico Park", price: 18, return: "TAK", rating: 5, comment: "Nie pami?tam xd" },
+            { id: 6, name: "BigFoot", price: 74, return: "NIE", rating: 2, comment: "fajne ale za drogie" },
+            { id: 7, name: "Lethal Company", price: 46, return: "TAK", rating: 7, comment: "" },
+            { id: 8, name: "Medieval Dynasty", price: 81, return: "TAK", rating: 6, comment: "fajna ale nie nasze klimaty" },
+            { id: 9, name: "No Fair Play", price: 14, return: "TAK", rating: 1, comment: "SYF KURWA SYF" },
+            { id: 10, name: "RAFT", price: 72, return: "TAK", rating: 6, comment: "Troche nuda" },
+            { id: 11, name: "Car For Sale Simulator 2023", price: 70, return: "TAK", rating: 1, comment: "Nie odpali? si?" },
+            { id: 12, name: "Valheim", price: 36, return: "NIE", rating: 6, comment: "Fajne ale sie znudzili?my" },
+            { id: 13, name: "The Escape Together", price: 8, return: "TAK", rating: 3, comment: "Szybki zwrocik" },
+            { id: 14, name: "Panicore", price: 23, return: "TAK", rating: 6, comment: "" },
+            { id: 15, name: "Devour", price: 23, return: "TAK", rating: 6, comment: "" },
+            { id: 16, name: "Chained Together", price: 23, return: "TAK", rating: 5, comment: "fajne ale nerwowy sie czulem" },
+            { id: 17, name: "The Escapist 2", price: 18, return: "TAK", rating: 6, comment: "" },
+            { id: 18, name: "3on3 freestyle: rebound", price: 0, return: "X", rating: 0, comment: "SYF KURWA SYF" },
+            { id: 19, name: "Business Tour", price: 0, return: "X", rating: 7, comment: "" },
+            { id: 20, name: "Content Warning", price: 0, return: "X", rating: 7, comment: "" },
+            { id: 21, name: "Dark Hours", price: 0, return: "X", rating: 6, comment: "Dopiero DEMO" },
+            { id: 22, name: "Dark Pictures - Man of Medan", price: 20, return: "NIE", rating: 8, comment: "" },
+            { id: 23, name: "Drunker Wrestlers", price: 0, return: "X", rating: 4, comment: "goofy" },
+            { id: 24, name: "Escape Memoirs", price: 0, return: "X", rating: 8, comment: "" },
+            { id: 25, name: "The Finals", price: 0, return: "X", rating: 5, comment: "nudne" },
+            { id: 26, name: "Joe n Jo", price: 0, return: "X", rating: 2, comment: "ja jebie" },
+            { id: 27, name: "Just Act Natural", price: 0, return: "X", rating: 1, comment: "SYF KURWA SYF" },
+            { id: 28, name: "Once Human", price: 0, return: "X", rating: 2, comment: "potencja? by? ale si? zmy?" },
+            { id: 29, name: "One-Armed Cook", price: 0, return: "X", rating: 6, comment: "na raz" },
+            { id: 30, name: "One-Armed robber", price: 0, return: "X", rating: 6, comment: "najebanym git" },
+            { id: 31, name: "Path Of Exile", price: 0, return: "X", rating: 6, comment: "fajne ale szybko znudzi?o" },
+            { id: 32, name: "Prison Life", price: 0, return: "X", rating: 1, comment: "SYF KURWA SYF" },
+            { id: 33, name: "Project Zomboid", price: 25, return: "NIE", rating: 6, comment: "fajne ale szybko znudzi?o" },
+            { id: 34, name: "Rocket League", price: 0, return: "X", rating: 8, comment: "" },
+            { id: 35, name: "Sea Of Thieves", price: 0, return: "X", rating: 2, comment: "kurwa niedotrwa?em do 5 minut" },
+            { id: 36, name: "SlappyBall", price: 0, return: "X", rating: 6, comment: "zapychacz na luzie" },
+            { id: 37, name: "SlapShot Rebound", price: 0, return: "X", rating: 3, comment: "?rednie" },
+            { id: 38, name: "Unfortunate spaceman", price: 0, return: "X", rating: 1, comment: "ALE SYF KURWA XDDDDDD" },
+            { id: 39, name: "Valorant", price: 0, return: "X", rating: 7, comment: "" },
+            { id: 40, name: "Football Manager 2024", price: 50, return: "X", rating: 7, comment: "" },
+            { id: 41, name: "Nuclear Nightmare", price: 6, return: "TAK", rating: 2, comment: "gowno" },
+            { id: 42, name: "Europa Universalis", price: 23, return: "TAK", rating: 2, comment: "nie dla nas" },
+            { id: 43, name: "Cities: Skylines", price: 14, return: "NIE", rating: 7, comment: "" },
+            { id: 44, name: "Liar's Bar", price: 32, return: "TAK", rating: 8.5, comment: "dobre w chuj" },
+            { id: 45, name: "Codenames", price: 0, return: "X", rating: 8, comment: "" },
+            { id: 46, name: "Geoguesser", price: 0, return: "X", rating: 7, comment: "" },
+            { id: 47, name: "Roblox", price: 0, return: "X", rating: 6, comment: "spoko, duzo trybów" },
+            { id: 48, name: "Szachy", price: 0, return: "X", rating: 8, comment: "" },
+            { id: 49, name: "Portal 2", price: 44, return: "TAK", rating: 5, comment: "" },
+            { id: 50, name: "Super Bunny Man", price: 45, return: "NIE", rating: 6, comment: "" },
+            { id: 51, name: "Moving Out", price: 0, return: "X", rating: 4, comment: "nuda" },
+            { id: 52, name: "Human Fall Flat", price: 0, return: "X", rating: 3, comment: "nuda" },
+        ];
+
+        // Funkcja do wyświetlania gier w tabeli
+        function renderGames() {
+            const tbody = document.querySelector("#gamesTable tbody");
+            tbody.innerHTML = ""; // Czyścimy tabelę przed ponownym renderowaniem
+
+            games.forEach((game) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${game.id}</td>
+                    <td>${game.name}</td>
+                    <td>${game.price} PLN</td>
+                    <td>${game.return}</td>
+                    <td>${game.rating}</td>
+                    <td>${game.comment}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editGame(${game.id})">Edytuj</button>
+                        <button class="delete-btn" onclick="deleteGame(${game.id})">Usuń</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Aktualizuj statystyki po każdej zmianie w tabeli
+            updateStatistics();
+        }
+
+        // Funkcja do dodawania nowej gry
+        function addGame() {
+            const name = document.getElementById("gameName").value;
+            const price = parseFloat(document.getElementById("gamePrice").value);
+            const returnStatus = document.getElementById("gameReturn").value.toUpperCase();
+            const rating = parseInt(document.getElementById("gameRating").value);
+            const comment = document.getElementById("gameComment").value;
+
+            if (name && !isNaN(price) && (returnStatus === "TAK" || returnStatus === "NIE") && !isNaN(rating)) {
+                const newId = games.length > 0 ? games[games.length - 1].id + 1 : 1; // Generowanie nowego ID
+                games.push({ id: newId, name, price, return: returnStatus, rating, comment });
+                renderGames();
+                // Czyszczenie pól formularza
+                document.getElementById("gameName").value = "";
+                document.getElementById("gamePrice").value = "";
+                document.getElementById("gameReturn").value = "";
+                document.getElementById("gameRating").value = "";
+                document.getElementById("gameComment").value = "";
+            } else {
+                alert("Wprowadź poprawne dane!");
+            }
+        }
+
+        // Funkcja do usuwania gry
+        function deleteGame(id) {
+            games = games.filter(game => game.id !== id);
+            renderGames();
+        }
+
+        // Funkcja do edycji gry
+        function editGame(id) {
+            const game = games.find(game => game.id === id);
+            const row = document.querySelector(`#gamesTable tbody tr:nth-child(${games.findIndex(g => g.id === id) + 1})`);
+            row.innerHTML = `
+                <td>${game.id}</td>
+                <td><input type="text" value="${game.name}"></td>
+                <td><input type="number" value="${game.price}"></td>
+                <td><input type="text" value="${game.return}"></td>
+                <td><input type="number" value="${game.rating}"></td>
+                <td><input type="text" value="${game.comment}"></td>
+                <td>
+                    <button class="save-btn" onclick="saveGame(${game.id})">Zapisz</button>
+                    <button class="cancel-btn" onclick="renderGames()">Anuluj</button>
+                </td>
+            `;
+        }
+
+        // Funkcja do zapisywania edytowanej gry
+        function saveGame(id) {
+            const row = document.querySelector(`#gamesTable tbody tr:nth-child(${games.findIndex(g => g.id === id) + 1})`);
+            const inputs = row.querySelectorAll("input");
+            const gameIndex = games.findIndex(game => game.id === id);
+            games[gameIndex] = {
+                id: id,
+                name: inputs[0].value,
+                price: parseFloat(inputs[1].value),
+                return: inputs[2].value.toUpperCase(),
+                rating: parseInt(inputs[3].value),
+                comment: inputs[4].value
+            };
+            renderGames();
+        }
+
+        // Funkcja do sortowania tabeli
+        function sortTable(key) {
+            const sortOrder = document.getElementById("gamesTable").getAttribute("data-sort-order") || "asc";
+            const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
+            document.getElementById("gamesTable").setAttribute("data-sort-order", newSortOrder);
+
+            games.sort((a, b) => {
+                const valueA = a[key];
+                const valueB = b[key];
+
+                if (typeof valueA === "string") {
+                    return newSortOrder === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+                } else {
+                    return newSortOrder === "asc" ? valueA - valueB : valueB - valueA;
+                }
+            });
+
+            renderGames();
+        }
+
+        // Funkcja do aktualizacji statystyk
+        function updateStatistics() {
+            if (games.length === 0) {
+                document.getElementById("averagePrice").querySelector(".value").textContent = "0 PLN";
+                document.getElementById("returnPercentage").querySelector(".value").textContent = "0%";
+                document.getElementById("averageRating").querySelector(".value").textContent = "0";
+                return;
+            }
+
+            // Średnia cena
+            const totalPrice = games.reduce((sum, game) => sum + game.price, 0);
+            const averagePrice = (totalPrice / games.length).toFixed(2);
+            document.getElementById("averagePrice").querySelector(".value").textContent = `${averagePrice} PLN`;
+
+            // Procent gier z zwrotem "TAK"
+            const returnYesCount = games.filter(game => game.return === "TAK").length;
+            const returnPercentage = ((returnYesCount / games.length) * 100).toFixed(2);
+            document.getElementById("returnPercentage").querySelector(".value").textContent = `${returnPercentage}%`;
+
+            // Średnia ocena
+            const totalRating = games.reduce((sum, game) => sum + game.rating, 0);
+            const averageRating = (totalRating / games.length).toFixed(2);
+            document.getElementById("averageRating").querySelector(".value").textContent = averageRating;
+        }
+
+        // Funkcja do przełączania sekcji
+        function showSection(sectionId) {
+            // Ukryj wszystkie sekcje
+            document.querySelectorAll("section").forEach(section => {
+                section.classList.remove("active");
+            });
+
+            // Pokaż wybraną sekcję
+            document.getElementById(sectionId).classList.add("active");
+
+            // Jeśli pokazujemy statystyki, zaktualizuj je
+            if (sectionId === "statistics") {
+                updateStatistics();
+            }
+        }
+
+        // Inicjalizacja tabeli przy pierwszym załadowaniu strony
+        renderGames();
+    </script>
+
+</body>
+</html>
