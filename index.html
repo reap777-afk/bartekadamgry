@@ -208,6 +208,87 @@
             font-size: 1.1em;
             margin: 10px 0;
         }
+
+        /* Styl dla zakładki Historia Gier */
+        #history {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        #history h2 {
+            color: #444;
+            margin-bottom: 0; /* Usunięcie marginesu dolnego */
+        }
+
+        #historyContent {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .history-entry {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .history-entry:last-child {
+            border-bottom: none;
+        }
+
+        /* Styl dla zakładek Bartek, Adam, Kuba */
+        .tab-buttons {
+            display: flex;
+            justify-content: center; /* Wyśrodkowanie przycisków */
+            gap: 20px; /* Większy odstęp między przyciskami */
+            margin-top: 20px; /* Dodatkowy margines na górze */
+        }
+
+        .tab-buttons button {
+            padding: 15px 30px; /* Większe przyciski */
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 8px; /* Zaokrąglone rogi */
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 16px; /* Większa czcionka */
+        }
+
+        .tab-buttons button:hover {
+            background-color: #555;
+            transform: scale(1.05); /* Lekkie powiększenie przy najechaniu */
+        }
+
+        .tab-buttons button.active {
+            background-color: #5cb85c; /* Zielony dla aktywnej zakładki */
+            font-weight: bold; /* Pogrubienie tekstu */
+        }
+
+        .tab-content {
+            display: none;
+            height: 600px; /* Wysokość ramki */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* Dodatkowy margines na górze */
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -218,6 +299,7 @@
     <nav>
         <a href="#" onclick="showSection('games')">Tabela Gier</a>
         <a href="#" onclick="showSection('statistics')">Statystyka</a>
+        <a href="#" onclick="showSection('history')">Historia Gier</a>
     </nav>
 
     <!-- Sekcja Tabela Gier -->
@@ -257,6 +339,32 @@
         <p id="averagePrice">Średnia cena gier: <span class="value">0 PLN</span></p>
         <p id="returnPercentage">Procent gier z zwrotem "TAK": <span class="value">0%</span></p>
         <p id="averageRating">Średnia ocena gier: <span class="value">0</span></p>
+    </section>
+
+    <!-- Sekcja Historia Gier -->
+    <section id="history">
+        <h2>Historia Gier</h2>
+        <div id="historyContent">
+            <!-- Historia zmian będzie wyświetlana tutaj -->
+        </div>
+
+        <!-- Zakładki Bartek, Adam, Kuba -->
+        <div class="tab-buttons">
+            <button onclick="showTab('bartek')" class="active">Bartek</button>
+            <button onclick="showTab('adam')">Adam</button>
+            <button onclick="showTab('kuba')">Kuba</button>
+        </div>
+
+        <!-- Zawartość zakładek -->
+        <div id="bartek" class="tab-content active">
+            <iframe src="https://leaguestats.gg/summoner/eune/pizza%20fanboy-EUNE"></iframe>
+        </div>
+        <div id="adam" class="tab-content">
+            <iframe src="https://leaguestats.gg/summoner/eune/bo%C5%BCedopom%C3%B3%C5%BC-cwl"></iframe>
+        </div>
+        <div id="kuba" class="tab-content">
+            <iframe src="https://leaguestats.gg/summoner/eune/Gunma-acg"></iframe>
+        </div>
     </section>
 
     <script>
@@ -316,6 +424,9 @@
             { id: 52, name: "Human Fall Flat", price: 0, return: "X", rating: 3, comment: "nuda" },
         ];
 
+        // Tablica do przechowywania historii zmian
+        let history = [];
+
         // Funkcja do wyświetlania gier w tabeli
         function renderGames() {
             const tbody = document.querySelector("#gamesTable tbody");
@@ -354,6 +465,11 @@
                 const newId = games.length > 0 ? games[games.length - 1].id + 1 : 1; // Generowanie nowego ID
                 games.push({ id: newId, name, price, return: returnStatus, rating, comment });
                 renderGames();
+
+                // Dodaj wpis do historii
+                history.push({ type: "Dodano grę", game: { id: newId, name, price, return: returnStatus, rating, comment }, timestamp: new Date() });
+                updateHistory();
+
                 // Czyszczenie pól formularza
                 document.getElementById("gameName").value = "";
                 document.getElementById("gamePrice").value = "";
@@ -367,8 +483,15 @@
 
         // Funkcja do usuwania gry
         function deleteGame(id) {
-            games = games.filter(game => game.id !== id);
-            renderGames();
+            const game = games.find(game => game.id === id);
+            if (game) {
+                games = games.filter(game => game.id !== id);
+                renderGames();
+
+                // Dodaj wpis do historii
+                history.push({ type: "Usunięto grę", game, timestamp: new Date() });
+                updateHistory();
+            }
         }
 
         // Funkcja do edycji gry
@@ -394,6 +517,7 @@
             const row = document.querySelector(`#gamesTable tbody tr:nth-child(${games.findIndex(g => g.id === id) + 1})`);
             const inputs = row.querySelectorAll("input");
             const gameIndex = games.findIndex(game => game.id === id);
+            const oldGame = games[gameIndex]; // Zapisz starą wersję gry
             games[gameIndex] = {
                 id: id,
                 name: inputs[0].value,
@@ -403,6 +527,10 @@
                 comment: inputs[4].value
             };
             renderGames();
+
+            // Dodaj wpis do historii
+            history.push({ type: "Edytowano grę", oldGame, newGame: games[gameIndex], timestamp: new Date() });
+            updateHistory();
         }
 
         // Funkcja do sortowania tabeli
@@ -450,6 +578,25 @@
             document.getElementById("averageRating").querySelector(".value").textContent = averageRating;
         }
 
+        // Funkcja do aktualizacji historii
+        function updateHistory() {
+            const historyContent = document.getElementById("historyContent");
+            historyContent.innerHTML = ""; // Czyść historię przed aktualizacją
+
+            history.forEach((entry) => {
+                const entryDiv = document.createElement("div");
+                entryDiv.className = "history-entry";
+                entryDiv.innerHTML = `
+                    <strong>${entry.type}</strong> (${entry.timestamp.toLocaleString()}):
+                    ${entry.type === "Edytowano grę" ? `
+                        <br>Stare dane: ${JSON.stringify(entry.oldGame)}
+                        <br>Nowe dane: ${JSON.stringify(entry.newGame)}
+                    ` : JSON.stringify(entry.game)}
+                `;
+                historyContent.appendChild(entryDiv);
+            });
+        }
+
         // Funkcja do przełączania sekcji
         function showSection(sectionId) {
             // Ukryj wszystkie sekcje
@@ -464,6 +611,28 @@
             if (sectionId === "statistics") {
                 updateStatistics();
             }
+
+            // Jeśli pokazujemy historię, zaktualizuj ją
+            if (sectionId === "history") {
+                updateHistory();
+            }
+        }
+
+        // Funkcja do przełączania zakładek
+        function showTab(tabId) {
+            // Ukryj wszystkie zakładki
+            document.querySelectorAll(".tab-content").forEach(tab => {
+                tab.classList.remove("active");
+            });
+
+            // Pokaż wybraną zakładkę
+            document.getElementById(tabId).classList.add("active");
+
+            // Zaktualizuj przyciski zakładek
+            document.querySelectorAll(".tab-buttons button").forEach(button => {
+                button.classList.remove("active");
+            });
+            document.querySelector(`.tab-buttons button[onclick="showTab('${tabId}')"]`).classList.add("active");
         }
 
         // Inicjalizacja tabeli przy pierwszym załadowaniu strony
